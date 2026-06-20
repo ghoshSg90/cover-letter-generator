@@ -1,10 +1,13 @@
 # app/main.py
-
+import uuid
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.database import SessionLocal
 from app.models import CoverLetter
+from app.services.llm_service import generate_cover_letter
+from app.services.pdf_service import create_pdf
+from app.requestModel import GenerateRequest
 
 app = FastAPI()
 
@@ -65,6 +68,49 @@ def create_coverletter(request: CoverLetterRequest):
         "id": coverletter.id,
         "message": "Created"
     }
+
+
+@app.post("/generate")
+def generate(request: GenerateRequest):
+
+    session = SessionLocal()
+
+    try:
+
+        cover_letter_text = generate_cover_letter(
+            request.company,
+            request.role,
+            request.job_description
+        )
+
+        filename = f"{uuid.uuid4()}.pdf"
+
+        pdf_path = (
+            f"storage/coverletters/{filename}"
+        )
+
+        create_pdf(
+            cover_letter_text,
+            pdf_path
+        )
+        print(CoverLetter.__table__.columns.keys())
+        coverletter = CoverLetter(
+            company=request.company,
+            role=request.role,
+            content_path=pdf_path
+        )
+
+        session.add(coverletter)
+        session.commit()
+        session.refresh(coverletter)
+
+        return {
+            "id": coverletter.id,
+            "pdf_path": pdf_path
+        }
+
+    finally:
+        session.close()
 
 @app.put("/coverletters/{id}")
 def update_coverletter(
