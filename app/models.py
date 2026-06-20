@@ -16,5 +16,5 @@ class CoverLetter(Base):
     id = Column(Integer, primary_key=True)
     company = Column(String(100))
     role = Column(String(100))
-    content = Column(Text)
+    content = Column(String(500))
     created_at = Column(DateTime, default=datetime.utcnow)

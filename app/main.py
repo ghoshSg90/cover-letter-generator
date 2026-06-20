@@ -11,7 +11,7 @@ app = FastAPI()
 class CoverLetterRequest(BaseModel):
     company: str
     role: str
-    content: str
+    content_path: str
 
 @app.get("/health")
 def health():
@@ -51,7 +51,7 @@ def create_coverletter(request: CoverLetterRequest):
     coverletter = CoverLetter(
         company=request.company,
         role=request.role,
-        content=request.content
+        content_path=request.content_path
     )
 
     session.add(coverletter)
@@ -85,7 +85,7 @@ def update_coverletter(
 
     coverletter.company = request.company
     coverletter.role = request.role
-    coverletter.content = request.content
+    coverletter.content_path = request.content_path
 
     session.commit()
     session.refresh(coverletter)
